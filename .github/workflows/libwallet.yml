@@ -20,6 +20,11 @@ jobs:
           level: "24"
         env:
           PKG_CONFIG_ALLOW_CROSS: 1
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: libwallet
+          path: /github/workspace/libwallet
       # Step 3: Copy tarballs to S3
       # - name: Sync to S3
       #   uses: jakejarvis/s3-sync-action@v0.5.1
