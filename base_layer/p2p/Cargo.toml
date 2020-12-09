@@ -26,6 +26,7 @@ futures = {version = "^0.3.1"}
 fs2 = "0.3.0"
 lmdb-zero = "0.4.4"
 log = "0.4.6"
+openssl-sys = {version="0.9.58", features=["vendored"]}
 prost = "0.6.1"
 rand = "0.7.2"
 serde = "1.0.90"
