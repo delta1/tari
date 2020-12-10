@@ -23,8 +23,8 @@ jobs:
         run: |
           ls -alht $GITHUB_WORKSPACE
           ls -alht $GITHUB_WORKSPACE/libwallet
-          ls -alht $GITHUB_WORKSPACE/build
-          ls -alht $GITHUB_WORKSPACE/platform
+          ls -alht $GITHUB_WORKSPACE/libwallet/build
+          ls -alht $GITHUB_WORKSPACE/libwallet/platforms
           tar -avcf $GITHUB_WORKSPACE/temp.tar.gz $GITHUB_WORKSPACE/libwallet
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
