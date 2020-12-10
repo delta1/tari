@@ -25,12 +25,12 @@ jobs:
           ls -alht $GITHUB_WORKSPACE/libwallet
           ls -alht $GITHUB_WORKSPACE/libwallet/build
           ls -alht $GITHUB_WORKSPACE/libwallet/platforms
-          tar -avcf $GITHUB_WORKSPACE/temp.tar.gz $GITHUB_WORKSPACE/libwallet
+          ls -alht $GITHUB_WORKSPACE/libwallet/libwallet.tar.gz
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: libwallet
-          path: '$GITHUB_WORKSPACE/temp.tar.gz'
+          path: '$GITHUB_WORKSPACE/libwallet/libwallet.tar.gz'
       # Step 3: Copy tarballs to S3
       # - name: Sync to S3
       #   uses: jakejarvis/s3-sync-action@v0.5.1
