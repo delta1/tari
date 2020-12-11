@@ -16,20 +16,17 @@ jobs:
         id: build-libwallet
         uses: delta1/action-buildlibs@master
         with:
-          platforms: "x86_64-linux-android;aarch64-linux-android;i686-linux-android;armv7-linux-androideabi"
+          # platforms: "x86_64-linux-android;aarch64-linux-android;i686-linux-android;armv7-linux-androideabi"
+          platforms: "x86_64-linux-android;aarch64-linux-android"
           # platforms: "x86_64-linux-android"
           level: "24"
       - name: list stuff
         run: |
-          ls -alht $GITHUB_WORKSPACE
-          ls -alht $GITHUB_WORKSPACE/libwallet
-          ls -alht $GITHUB_WORKSPACE/libwallet/build
-          ls -alht $GITHUB_WORKSPACE/libwallet/platforms
           ls -alht $GITHUB_WORKSPACE/libwallet/libwallet.tar.gz
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: libwallet
+          name: libwallet.tar.gz
           path: ${{ github.workspace }}/libwallet/libwallet.tar.gz
       # Step 3: Copy tarballs to S3
       # - name: Sync to S3
