@@ -22,6 +22,7 @@ jobs:
           level: "24"
       - name: list stuff
         run: |
+          ls -alht $GITHUB_WORKSPACE/libwallet/
           ls -alht $GITHUB_WORKSPACE/libwallet/libwallet.tar.gz
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
