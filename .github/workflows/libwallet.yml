@@ -17,8 +17,8 @@ jobs:
         uses: delta1/action-buildlibs@master
         with:
           # platforms: "x86_64-linux-android;aarch64-linux-android;i686-linux-android;armv7-linux-androideabi"
-          platforms: "x86_64-linux-android;armv7-linux-androideabi"
-          # platforms: "x86_64-linux-android"
+          platforms: "x86_64-linux-android;aarch64-linux-android"
+          # platforms: "x86_64-linux-android;armv7-linux-androideabi"
           level: "24"
       - name: list stuff
         run: |
