@@ -19,7 +19,7 @@ RUN cargo fetch && \
   cargo build --bin tari_base_node --release --features $TBN_FEATURES --locked
 
 # Create a base minimal image for adding our executables to
-FROM bitnami/minideb:stretch as base
+FROM quay.io/bitnami/minideb:stretch as base
 # Disable Prompt During Packages Installation
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt -y install \
