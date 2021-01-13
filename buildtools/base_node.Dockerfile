@@ -1,12 +1,13 @@
 #FROM rust:1.42.0 as builder
-FROM quay.io/tarilabs/rust_tari-build-with-deps:nightly-2020-06-10 as builder
+FROM quay.io/tarilabs/rust_tari-build-with-deps:nightly-2020-10-10 as builder
 
 # Copy the dependency lists
 #ADD Cargo.toml ./
 ADD . /tari_base_node
 WORKDIR /tari_base_node
 
-RUN rustup component add rustfmt --toolchain nightly-2020-06-10-x86_64-unknown-linux-gnu
+RUN rustup toolchain install nightly-2020-08-13-x86_64-unknown-linux-gnu
+RUN rustup component add rustfmt --toolchain nightly-2020-08-13-x86_64-unknown-linux-gnu
 #ARG TBN_ARCH=native
 ARG TBN_ARCH=x86-64
 #ARG TBN_FEATURES=avx2
@@ -19,7 +20,7 @@ RUN cargo fetch && \
   cargo build --bin tari_base_node --release --features $TBN_FEATURES --locked
 
 # Create a base minimal image for adding our executables to
-FROM bitnami/minideb:stretch as base
+FROM quay.io/bitnami/minideb:stretch as base
 # Disable Prompt During Packages Installation
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt -y install \
