@@ -29,7 +29,10 @@ use crate::{
         storage::{database::OutputManagerBackend, memory_db::OutputManagerMemoryDatabase},
         TxId,
     },
-    storage::{database::WalletBackend, memory_db::WalletMemoryDatabase},
+    storage::{
+        database::{DbKeyValuePair, WalletBackend, WriteOperation},
+        memory_db::WalletMemoryDatabase,
+    },
     transaction_service::{
         handle::TransactionEvent,
         storage::{
@@ -51,6 +54,7 @@ use std::{
     sync::Arc,
     time::Duration,
 };
+use tari_common_types::chain_metadata::ChainMetadata;
 use tari_comms::{
     multiaddr::Multiaddr,
     peer_manager::{NodeIdentity, PeerFeatures},
@@ -152,10 +156,15 @@ pub async fn create_wallet(
     };
 
     let config = WalletConfig::new(comms_config, factories, None, None, Network::Stibbons, None, None, None);
+    let db = WalletMemoryDatabase::new();
 
+    let meta_data = ChainMetadata::new(std::u64::MAX, Vec::new(), 0, 0, 0);
+
+    db.write(WriteOperation::Insert(DbKeyValuePair::BaseNodeChainMeta(meta_data)))
+        .unwrap();
     Wallet::new(
         config,
-        WalletMemoryDatabase::new(),
+        db,
         TransactionMemoryDatabase::new(),
         OutputManagerMemoryDatabase::new(),
         ContactsServiceMemoryDatabase::new(),

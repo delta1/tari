@@ -1715,7 +1715,7 @@ where
     ) -> Result<(), TransactionServiceError>
     {
         use crate::{
-            base_node_service::handle::BaseNodeServiceHandle,
+            base_node_service::{handle::BaseNodeServiceHandle, mock_base_node_service::MockBaseNodeService},
             output_manager_service::{
                 config::OutputManagerServiceConfig,
                 error::OutputManagerError,
@@ -1727,6 +1727,7 @@ where
         use futures::stream;
         use tari_core::consensus::{ConsensusConstantsBuilder, Network};
         use tari_shutdown::Shutdown;
+        use tokio::runtime::Runtime;
 
         let (_sender, receiver) = reply_channel::unbounded();
         let (tx, _rx) = mpsc::channel(20);
@@ -1736,10 +1737,14 @@ where
         let ts_handle = TransactionServiceHandle::new(ts_request_sender, event_publisher.clone());
         let constants = ConsensusConstantsBuilder::new(Network::Stibbons).build();
         let shutdown = Shutdown::new();
-        let (sender, _) = reply_channel::unbounded();
+        let (sender, receiver_bns) = reply_channel::unbounded();
         let (event_publisher_bns, _) = broadcast::channel(100);
 
+        let runtime = Runtime::new().map_err(|e| TransactionServiceError::TestHarnessError(e.to_string()))?;
         let basenode_service_handle = BaseNodeServiceHandle::new(sender, event_publisher_bns);
+        let mut mock_base_node_service = MockBaseNodeService::new(receiver_bns, shutdown.to_signal());
+        mock_base_node_service.set_default_base_node_state();
+        runtime.spawn(mock_base_node_service.run());
         let mut fake_oms = OutputManagerService::new(
             OutputManagerServiceConfig::default(),
             OutboundMessageRequester::new(tx),

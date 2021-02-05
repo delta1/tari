@@ -93,7 +93,12 @@ use tari_p2p::{comms_connector::pubsub_connector, domain_message::DomainMessage}
 use tari_service_framework::{reply_channel, RegisterHandle, StackBuilder};
 use tari_shutdown::{Shutdown, ShutdownSignal};
 use tari_wallet::{
-    base_node_service::{config::BaseNodeServiceConfig, handle::BaseNodeServiceHandle, BaseNodeServiceInitializer},
+    base_node_service::{
+        config::BaseNodeServiceConfig,
+        handle::BaseNodeServiceHandle,
+        mock_base_node_service::MockBaseNodeService,
+        BaseNodeServiceInitializer,
+    },
     output_manager_service::{
         config::OutputManagerServiceConfig,
         handle::OutputManagerHandle,
@@ -311,10 +316,14 @@ pub fn setup_transaction_service_no_comms_and_oms_backend<
 
     let shutdown = Shutdown::new();
 
-    let (sender, _) = reply_channel::unbounded();
+    let (sender, receiver_bns) = reply_channel::unbounded();
     let (event_publisher_bns, _) = broadcast::channel(100);
 
     let basenode_service_handle = BaseNodeServiceHandle::new(sender, event_publisher_bns);
+    let mut mock_base_node_service = MockBaseNodeService::new(receiver_bns, shutdown.to_signal());
+    mock_base_node_service.set_default_base_node_state();
+    runtime.spawn(mock_base_node_service.run());
+
     let output_manager_service = runtime
         .block_on(OutputManagerService::new(
             OutputManagerServiceConfig::default(),
