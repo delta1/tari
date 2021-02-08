@@ -6396,6 +6396,8 @@ mod test {
     #[test]
     fn test_wallet_encryption() {
         unsafe {
+            use tari_common_types::chain_metadata::ChainMetadata;
+            use tokio::runtime;
             let mut error = 0;
             let error_ptr = &mut error as *mut c_int;
 
@@ -6438,7 +6440,11 @@ mod test {
                 saf_messages_received_callback,
                 error_ptr,
             );
-
+            let mut runtime = Runtime::new().unwrap();
+            let meta_data = ChainMetadata::new(std::u64::MAX, Vec::new(), 0, 0, 0);
+            runtime
+                .block_on((*alice_wallet).wallet.db.set_chain_meta(meta_data))
+                .unwrap();
             let generated = wallet_test_generate_data(alice_wallet, db_path_alice_str, error_ptr);
             assert!(generated);
 
