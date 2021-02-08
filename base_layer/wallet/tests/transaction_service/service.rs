@@ -172,10 +172,10 @@ pub fn setup_transaction_service<T: TransactionBackend + 'static, P: AsRef<Path>
         shutdown_signal.clone(),
     ));
 
-    let mut db = WalletDatabase::new(WalletMemoryDatabase::new());
+    let db = WalletDatabase::new(WalletMemoryDatabase::new());
     let meta_data = ChainMetadata::new(std::u64::MAX, Vec::new(), 0, 0, 0);
 
-    runtime.block_on(db.set_chain_meta(meta_data));
+    runtime.block_on(db.set_chain_meta(meta_data)).unwrap();
 
     let fut = StackBuilder::new(shutdown_signal)
         .add_initializer(RegisterHandle::new(dht))

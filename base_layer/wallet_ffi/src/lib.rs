@@ -5728,6 +5728,8 @@ mod test {
 
     #[test]
     fn test_wallet_ffi() {
+        use tari_common_types::chain_metadata::ChainMetadata;
+        use tokio::runtime;
         unsafe {
             {
                 let mut lock = CALLBACK_STATE_FFI.lock().unwrap();
@@ -5851,6 +5853,11 @@ mod test {
             private_key_destroy(test_contact_private_key);
             string_destroy(test_contact_alias as *mut c_char);
 
+            let mut runtime = Runtime::new().unwrap();
+            let meta_data = ChainMetadata::new(std::u64::MAX, Vec::new(), 0, 0, 0);
+            runtime
+                .block_on((*alice_wallet).wallet.db.set_chain_meta(meta_data))
+                .unwrap();
             let generated = wallet_test_generate_data(alice_wallet, db_path_alice_str, error_ptr);
             assert_eq!(generated, true);
 
