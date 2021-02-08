@@ -96,7 +96,7 @@ impl MockBaseNodeService {
     }
 
     fn set_base_node_peer(&mut self, peer: Peer) {
-        self.base_node_peer = Some(peer.clone());
+        self.base_node_peer = Some(peer);
     }
 
     /// This handler is called when requests arrive from the various streams
