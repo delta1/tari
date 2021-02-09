@@ -5856,7 +5856,10 @@ mod test {
             let mut runtime = Runtime::new().unwrap();
             let meta_data = ChainMetadata::new(std::u64::MAX, Vec::new(), 0, 0, 0);
             runtime
-                .block_on((*alice_wallet).wallet.db.set_chain_meta(meta_data))
+                .block_on((*alice_wallet).wallet.db.set_chain_meta(meta_data.clone()))
+                .unwrap();
+            runtime
+                .block_on((*bob_wallet).wallet.db.set_chain_meta(meta_data))
                 .unwrap();
             let generated = wallet_test_generate_data(alice_wallet, db_path_alice_str, error_ptr);
             assert_eq!(generated, true);
