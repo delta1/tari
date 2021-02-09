@@ -3241,9 +3241,10 @@ pub unsafe extern "C" fn wallet_test_receive_transaction(wallet: *mut TariWallet
         ptr::swap(error_out, &mut error as *mut c_int);
         return false;
     }
+    let handle = (*wallet).runtime.handle();
     match (*wallet)
         .runtime
-        .block_on(receive_test_transaction(&mut (*wallet).wallet))
+        .block_on(receive_test_transaction(&mut (*wallet).wallet, handle))
     {
         Ok(_) => true,
         Err(e) => {
@@ -5729,7 +5730,6 @@ mod test {
     #[test]
     fn test_wallet_ffi() {
         use tari_common_types::chain_metadata::ChainMetadata;
-        use tokio::runtime;
         unsafe {
             {
                 let mut lock = CALLBACK_STATE_FFI.lock().unwrap();
@@ -5853,13 +5853,14 @@ mod test {
             private_key_destroy(test_contact_private_key);
             string_destroy(test_contact_alias as *mut c_char);
 
-            let mut runtime = Runtime::new().unwrap();
             let meta_data = ChainMetadata::new(std::u64::MAX, Vec::new(), 0, 0, 0);
-            runtime
+            (*alice_wallet)
+                .runtime
                 .block_on((*alice_wallet).wallet.db.set_chain_meta(meta_data.clone()))
                 .unwrap();
-            runtime
-                .block_on((*bob_wallet).wallet.db.set_chain_meta(meta_data))
+            (*bob_wallet)
+                .runtime
+                .block_on((*bob_wallet).wallet.db.set_chain_meta(meta_data.clone()))
                 .unwrap();
             let generated = wallet_test_generate_data(alice_wallet, db_path_alice_str, error_ptr);
             assert_eq!(generated, true);
@@ -6407,7 +6408,6 @@ mod test {
     fn test_wallet_encryption() {
         unsafe {
             use tari_common_types::chain_metadata::ChainMetadata;
-            use tokio::runtime;
             let mut error = 0;
             let error_ptr = &mut error as *mut c_int;
 

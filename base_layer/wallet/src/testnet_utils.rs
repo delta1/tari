@@ -77,7 +77,7 @@ use tari_crypto::{
 };
 use tari_p2p::{initialization::CommsConfig, transport::TransportType};
 use tari_shutdown::{Shutdown, ShutdownSignal};
-use tokio::time::delay_for;
+use tokio::{runtime::Handle, time::delay_for};
 
 // Used to generate test wallet data
 
@@ -773,7 +773,9 @@ pub async fn receive_test_transaction<
     W: ContactsBackend,
 >(
     wallet: &mut Wallet<T, U, V, W>,
-) -> Result<(), WalletError> {
+    handle: &Handle,
+) -> Result<(), WalletError>
+{
     let contacts = wallet.contacts_service.get_contacts().await.unwrap();
     let (_secret_key, mut public_key): (CommsSecretKey, CommsPublicKey) = PublicKey::random_keypair(&mut OsRng);
 
@@ -787,6 +789,7 @@ pub async fn receive_test_transaction<
             OsRng.next_u64(),
             MicroTari::from(10_000 + OsRng.next_u64() % 101_000),
             public_key,
+            handle,
         )
         .await?;
 

@@ -78,6 +78,9 @@ use tari_service_framework::{reply_channel, reply_channel::Receiver};
 use tari_shutdown::ShutdownSignal;
 use tokio::{sync::broadcast, task::JoinHandle};
 
+#[cfg(feature = "test_harness")]
+use tokio::runtime::Handle;
+
 const LOG_TARGET: &str = "wallet::transaction_service::service";
 
 /// TransactionService allows for the management of multiple inbound and outbound transaction protocols
@@ -509,8 +512,9 @@ where
                 Ok(TransactionServiceResponse::FinalizedPendingInboundTransaction)
             },
             #[cfg(feature = "test_harness")]
-            TransactionServiceRequest::AcceptTestTransaction((tx_id, amount, source_pubkey)) => {
-                self.receive_test_transaction(tx_id, amount, source_pubkey).await?;
+            TransactionServiceRequest::AcceptTestTransaction((tx_id, amount, source_pubkey, handle)) => {
+                self.receive_test_transaction(tx_id, amount, source_pubkey, handle)
+                    .await?;
                 Ok(TransactionServiceResponse::AcceptedTestTransaction)
             },
             #[cfg(feature = "test_harness")]
@@ -1712,6 +1716,7 @@ where
         _tx_id: TxId,
         amount: MicroTari,
         source_public_key: CommsPublicKey,
+        handle: Handle,
     ) -> Result<(), TransactionServiceError>
     {
         use crate::{
@@ -1726,8 +1731,6 @@ where
         };
         use futures::stream;
         use tari_core::consensus::{ConsensusConstantsBuilder, Network};
-        use tari_shutdown::Shutdown;
-        use tokio::runtime::Runtime;
 
         let (_sender, receiver) = reply_channel::unbounded();
         let (tx, _rx) = mpsc::channel(20);
@@ -1736,15 +1739,14 @@ where
         let (event_publisher, _) = broadcast::channel(100);
         let ts_handle = TransactionServiceHandle::new(ts_request_sender, event_publisher.clone());
         let constants = ConsensusConstantsBuilder::new(Network::Stibbons).build();
-        let shutdown = Shutdown::new();
+        let shutdown_signal = self.resources.shutdown_signal.clone();
         let (sender, receiver_bns) = reply_channel::unbounded();
         let (event_publisher_bns, _) = broadcast::channel(100);
 
-        let runtime = Runtime::new().map_err(|e| TransactionServiceError::TestHarnessError(e.to_string()))?;
         let basenode_service_handle = BaseNodeServiceHandle::new(sender, event_publisher_bns);
-        let mut mock_base_node_service = MockBaseNodeService::new(receiver_bns, shutdown.to_signal());
+        let mut mock_base_node_service = MockBaseNodeService::new(receiver_bns, shutdown_signal.clone());
         mock_base_node_service.set_default_base_node_state();
-        runtime.spawn(mock_base_node_service.run());
+        handle.spawn(mock_base_node_service.run());
         let mut fake_oms = OutputManagerService::new(
             OutputManagerServiceConfig::default(),
             OutboundMessageRequester::new(tx),
@@ -1755,7 +1757,7 @@ where
             oms_event_publisher,
             self.resources.factories.clone(),
             constants,
-            shutdown.to_signal(),
+            shutdown_signal,
             basenode_service_handle,
         )
         .await?;
